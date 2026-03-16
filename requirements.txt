@@ -1,4 +1,6 @@
-torch
-torchvision
-numpy
-Pillow
+torch==2.2.2
+torchvision==0.17.2
+numpy==1.26.4
+pillow>=9.0
+matplotlib>=3.7
+pandas>=2.0

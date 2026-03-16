@@ -79,6 +79,12 @@ ADVRET/
   - Original image preservation
   - Adversarial image generation
   - Perturbation visualization with normalization
+  - Graphical attack benchmarking:
+    - Success rate bar chart
+    - Confidence drop bar chart
+    - Combined success vs confidence comparison chart
+    - Robustness curve (accuracy vs epsilon)
+  - Generated outputs saved into the `outputs/` directory
 
 ## Usage Examples
 

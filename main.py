@@ -12,7 +12,8 @@ from attacks.pgd_attack import pgd_attack
 from attacks.deepfool_attack import deepfool_attack
 from attacks.cw_attack import cw_attack
 from utils.imagenet_labels import IMAGENET_CLASSES
-from evaluation.metrics import update_attack_metrics, print_attack_benchmark
+from evaluation.metrics import update_attack_metrics, print_attack_benchmark, get_attack_results
+from evaluation.visualization import generate_visualizations
 
 
 def main():
@@ -27,6 +28,10 @@ def main():
         f for f in os.listdir(image_folder)
         if f.lower().endswith((".jpg", ".jpeg", ".png"))
     ]
+
+    # Track original image paths and model predictions for robustness graphing
+    image_paths = []
+    predicted_classes = []
 
     if not image_files:
         print("No image files found in the provided folder.")
@@ -97,6 +102,10 @@ def main():
 
         # Predict original image
         predicted_class, confidence_score = predict(model, image)
+
+        # Track inputs for robustness curve generation
+        image_paths.append(image_path)
+        predicted_classes.append(predicted_class)
 
         print("\n----------------------------------")
         print(f"Image: {image_file}\n")
@@ -177,6 +186,10 @@ def main():
     else:
         # Print benchmark
         print_attack_benchmark(attack_metrics, total_images)
+        
+        # Generate visualizations and analysis
+        results = get_attack_results(attack_metrics)
+        generate_visualizations(results, model, device, image_paths, predicted_classes)
 
 
 if __name__ == "__main__":

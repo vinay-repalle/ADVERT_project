@@ -15,7 +15,8 @@ ADVRET is a PyTorch-based system designed to evaluate how vulnerable deep learni
 * Perturbation visualization
 * Attack success rate and confidence drop metrics
 * Automated benchmark table generation
-* Saving original, adversarial, and perturbation images
+* Graphical benchmark output (success rate, confidence drop, comparison, robustness curve)
+* Saving original, adversarial, perturbation, and graph outputs in `outputs/`
 
 ## Project Structure
 

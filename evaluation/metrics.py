@@ -18,6 +18,35 @@ def update_attack_metrics(metrics, attack_name, is_success, conf_drop):
         metrics[attack_name]['successes'] += 1
     metrics[attack_name]['conf_drop_sum'] += conf_drop
 
+ALL_ATTACKS = ['FGSM', 'PGD', 'DeepFool', 'Carlini-Wagner']
+
+
+def get_attack_results(metrics):
+    """
+    Convert metrics dict to structured results dict.
+
+    Ensures that all known attacks are present in the returned dict (missing
+    attacks will be filled with 0 values).
+
+    Parameters:
+    - metrics: dict of attack metrics
+
+    Returns:
+    - results: dict with success_rate and confidence_drop for each attack
+    """
+    results = {}
+
+    for attack_name in ALL_ATTACKS:
+        data = metrics.get(attack_name, {'successes': 0, 'total': 0, 'conf_drop_sum': 0.0})
+        success_rate = (data['successes'] / data['total']) if data['total'] > 0 else 0
+        avg_conf_drop = data['conf_drop_sum'] / data['total'] if data['total'] > 0 else 0
+        results[attack_name] = {
+            "success_rate": success_rate,
+            "confidence_drop": avg_conf_drop
+        }
+
+    return results
+
 def print_attack_benchmark(metrics, total_images):
     """
     Print the attack benchmark table.
