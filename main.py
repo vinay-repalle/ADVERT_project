@@ -17,8 +17,19 @@ from evaluation.visualization import generate_visualizations
 
 
 def main():
-    # Load model and device
-    model, device = load_model()
+    # Select model
+    print("Select Model")
+    print("1 - ResNet18")
+    print("2 - MobileNetV2")
+    print("3 - VGG16")
+    model_choice = input("\nEnter model number: ")
+
+    # Determine device (GPU if available)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}")
+
+    # Load selected model
+    model, device = load_model(model_choice, device)
 
     # Ask user for image folder
     image_folder = input("Enter the path to a folder of images: ")
