@@ -4,6 +4,7 @@ from datetime import datetime
 
 import torch
 from flask import Flask, flash, redirect, render_template, request, send_file, send_from_directory, url_for
+from werkzeug.utils import secure_filename
 
 from attacks.cw_attack import cw_attack
 from attacks.deepfool_attack import deepfool_attack
@@ -16,7 +17,7 @@ from models.model_loader import load_model
 from utils.predict import predict
 
 app = Flask(__name__)
-app.secret_key = "advret-secret"
+app.secret_key = os.environ.get("SECRET_KEY", "advret-secret")
 
 # Force template auto-reload (helps when running from synced folders like OneDrive)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
@@ -79,7 +80,9 @@ def save_uploaded_file(file_storage, dest_folder: str) -> str:
     if not filename:
         return ""
 
-    filename = os.path.basename(filename)
+    filename = secure_filename(os.path.basename(filename))
+    if not filename:
+        return ""
     os.makedirs(dest_folder, exist_ok=True)
     target_path = os.path.join(dest_folder, filename)
 
@@ -92,6 +95,17 @@ def save_uploaded_file(file_storage, dest_folder: str) -> str:
 
     file_storage.save(target_path)
     return target_path
+
+
+def delete_file_if_in_dir(file_path: str, allowed_dir: str) -> None:
+    """Best-effort delete for a file within a specific directory."""
+    try:
+        abs_path = os.path.abspath(file_path)
+        abs_allowed_dir = os.path.abspath(allowed_dir)
+        if abs_path.startswith(abs_allowed_dir) and os.path.isfile(abs_path):
+            os.remove(abs_path)
+    except Exception:
+        pass
 
 
 def load_custom_model(model_path: str, device: torch.device):
@@ -185,6 +199,7 @@ def run():
 
     pretrained_choice = request.form.get("pretrained_model", "1")
     custom_model_file = request.files.get("custom_model")
+    custom_model_uploaded = False
 
     if custom_model_file and custom_model_file.filename:
         # New model upload replaces any previous uploaded model.
@@ -199,6 +214,7 @@ def run():
         except Exception as exc:
             flash(f"Failed to load custom model: {exc}", "error")
             return redirect(url_for("index"))
+        custom_model_uploaded = True
         ACTIVE_MODEL.update(
             {"path": model_path, "name": os.path.basename(model_path), "model": model, "device": device}
         )
@@ -299,6 +315,14 @@ def run():
 
     make_report_zip(OUTPUT_FOLDER)
 
+    # Uploaded user files are temporary: delete them after processing.
+    for p in saved_image_paths:
+        delete_file_if_in_dir(p, IMAGE_UPLOAD_FOLDER)
+    if custom_model_uploaded:
+        delete_file_if_in_dir(ACTIVE_MODEL.get("path") or "", MODEL_UPLOAD_FOLDER)
+        # Keep the in-memory model for this session, but don't keep the file path.
+        ACTIVE_MODEL["path"] = None
+
     graphs = {
         "success": url_for("outputs", filename="attack_success_rates.png"),
         "confidence": url_for("outputs", filename="confidence_drop.png"),
@@ -321,6 +345,5 @@ def run():
 
 
 if __name__ == "__main__":
-    # Keep debug features (template auto-reload, better errors) but disable the
-    # reloader process to avoid occasional "stuck loading" behavior on Windows.
-    app.run(host="127.0.0.1", port=5000, debug=True, use_reloader=False, threaded=True)
+    port = int(os.environ.get("PORT", "5000"))
+    app.run(host="0.0.0.0", port=port)

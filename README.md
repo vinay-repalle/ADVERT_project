@@ -49,7 +49,7 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Then open `http://127.0.0.1:5000/`.
+Then open `http://127.0.0.1:5000/` (local) or the Render service URL (deployment).
 
 In the UI you can:
 - Select a pretrained model (ResNet18 / MobileNetV2 / VGG16) or upload a custom `.pt` / `.pth`
@@ -78,6 +78,42 @@ Choose between single attack mode or benchmark mode to evaluate model robustness
   - the user uploads new files
 - `uploads/` is ignored by git, and model file extensions (`*.pt`, `*.pth`) are also ignored.
 - `outputs/` is ignored by git (generated graphs/report files).
+
+## Deployment (Render)
+
+### Run locally
+
+```bash
+python app.py
+```
+
+### Push to GitHub
+
+```bash
+git init
+git add .
+git commit -m "deployment ready"
+git branch -M main
+git remote add origin <repo>
+git push -u origin main
+```
+
+### Deploy on Render
+
+1. Go to Render
+2. Create new **Web Service**
+3. Connect the GitHub repo
+4. Build command:
+
+```bash
+pip install -r requirements.txt
+```
+
+5. Start command:
+
+```bash
+python app.py
+```
 
 ## Documentation
 
