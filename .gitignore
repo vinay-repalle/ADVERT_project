@@ -1,5 +1,8 @@
-uploads/
-outputs/
+uploads/*
+!uploads/.gitkeep
+
+outputs/*
+!outputs/.gitkeep
 **pycache**/
 __pycache__/
 *.pyc

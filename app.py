@@ -30,6 +30,8 @@ MODEL_UPLOAD_FOLDER = os.path.join(UPLOAD_ROOT, "models")
 IMAGE_UPLOAD_FOLDER = os.path.join(UPLOAD_ROOT, "images")
 OUTPUT_FOLDER = os.path.join(BASE_DIR, "outputs")
 
+os.makedirs("uploads", exist_ok=True)
+os.makedirs("outputs", exist_ok=True)
 os.makedirs(MODEL_UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(IMAGE_UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
