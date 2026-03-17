@@ -229,42 +229,6 @@
 {% endblock %}
 
 {% block body_extra %}
-  <script>
-    const form = document.getElementById("advret-form");
-    const runBtn = document.getElementById("run-btn");
-    const progressModal = document.getElementById("simple-progress-modal");
-    const progressBar = document.getElementById("simple-progress-bar");
-    const progressPct = document.getElementById("simple-progress-pct");
-    const progressTrack = document.getElementById("simple-progress-track");
-
-    function setProgress(pct) {
-      const clamped = Math.max(0, Math.min(100, pct));
-      if (progressBar) progressBar.style.width = clamped + "%";
-      if (progressPct) progressPct.textContent = Math.round(clamped) + "%";
-      if (progressTrack) progressTrack.setAttribute("aria-valuenow", String(Math.round(clamped)));
-    }
-
-    if (form && runBtn && progressModal && progressBar && progressPct && progressTrack) {
-      form.addEventListener("submit", () => {
-        runBtn.disabled = true;
-        runBtn.classList.add("opacity-70", "cursor-not-allowed");
-        progressModal.classList.remove("hidden");
-
-        // Approximate progress (no polling). Ramps quickly then slows near the end.
-        let start = Date.now();
-        let timer = setInterval(() => {
-          const elapsed = (Date.now() - start) / 1000;
-          // Ease-out curve capped at 95% until navigation.
-          const eased = 95 * (1 - Math.exp(-elapsed / 2.2));
-          setProgress(eased);
-        }, 200);
-
-        // If the user navigates away / page unloads, stop timers.
-        window.addEventListener("beforeunload", () => {
-          try { clearInterval(timer); } catch (e) {}
-        }, { once: true });
-      });
-    }
-  </script>
+  <script src="{{ url_for('static', filename='js/progress.js') }}"></script>
 {% endblock %}
 

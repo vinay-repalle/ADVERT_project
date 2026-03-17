@@ -53,6 +53,27 @@ def clear_folder(folder_path: str) -> None:
             os.remove(path)
 
 
+def clear_active_model() -> None:
+    """Delete the current uploaded model file and clear in-memory model."""
+    model_path = ACTIVE_MODEL.get("path")
+    if model_path and isinstance(model_path, str):
+        try:
+            abs_path = os.path.abspath(model_path)
+            abs_models_dir = os.path.abspath(MODEL_UPLOAD_FOLDER)
+            if abs_path.startswith(abs_models_dir) and os.path.isfile(abs_path):
+                os.remove(abs_path)
+        except Exception:
+            pass
+    ACTIVE_MODEL.update({"path": None, "name": None, "model": None, "device": None})
+
+
+def clear_uploads() -> None:
+    """Clear all uploaded files (models + images)."""
+    clear_folder(IMAGE_UPLOAD_FOLDER)
+    clear_folder(MODEL_UPLOAD_FOLDER)
+    clear_active_model()
+
+
 def save_uploaded_file(file_storage, dest_folder: str) -> str:
     filename = file_storage.filename
     if not filename:
@@ -62,10 +83,12 @@ def save_uploaded_file(file_storage, dest_folder: str) -> str:
     os.makedirs(dest_folder, exist_ok=True)
     target_path = os.path.join(dest_folder, filename)
 
+    # Uploads are temporary: overwrite instead of keeping history.
     if os.path.exists(target_path):
-        name, ext = os.path.splitext(filename)
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        target_path = os.path.join(dest_folder, f"{name}_{timestamp}{ext}")
+        try:
+            os.remove(target_path)
+        except Exception:
+            pass
 
     file_storage.save(target_path)
     return target_path
@@ -146,6 +169,8 @@ def download_report():
 
 @app.route("/", methods=["GET"])
 def index():
+    # Treat uploads as temporary: a page refresh clears previous uploads.
+    clear_uploads()
     return render_template(
         "index.html",
         active_model=ACTIVE_MODEL.get("name"),
@@ -162,6 +187,9 @@ def run():
     custom_model_file = request.files.get("custom_model")
 
     if custom_model_file and custom_model_file.filename:
+        # New model upload replaces any previous uploaded model.
+        clear_folder(MODEL_UPLOAD_FOLDER)
+        clear_active_model()
         if not allowed_file(custom_model_file.filename, ALLOWED_MODEL_EXT):
             flash("Invalid model file type. Use .pt or .pth.", "error")
             return redirect(url_for("index"))
@@ -193,6 +221,7 @@ def run():
         flash("Please upload at least one image file.", "warning")
         return redirect(url_for("index"))
 
+    # New image upload replaces any previous uploaded images.
     clear_folder(IMAGE_UPLOAD_FOLDER)
     saved_image_paths: list[str] = []
     for img in uploaded_images:
