@@ -8,12 +8,13 @@ ADVRET is a comprehensive PyTorch-based framework designed for evaluating the ad
 
 ### Core Components
 
-- **Model Loading**: Utilizes pretrained ResNet18 model from PyTorch's torchvision
+- **Model Loading**: Supports pretrained torchvision models (ResNet18 / MobileNetV2 / VGG16) and optional custom PyTorch model upload (.pt/.pth) via the web UI
 - **Image Processing**: Handles batch processing of image folders with automatic preprocessing
 - **Attack Implementations**: Four different adversarial attack algorithms
 - **Evaluation Metrics**: Comprehensive metrics including success rates and confidence drops
-- **Visualization**: Saves original images, adversarial examples, and perturbation visualizations
-- **Benchmarking**: Automated comparison across multiple attacks
+- **Visualization**: Generates static benchmark graphs (saved to `outputs/`)
+- **Benchmarking**: Automated comparison across multiple attacks (single attack mode or all-attacks mode)
+- **Web Interface**: Flask + Jinja templates for running ADVRET from the browser
 
 ### Implemented Attacks
 
@@ -40,6 +41,7 @@ ADVRET is a comprehensive PyTorch-based framework designed for evaluating the ad
 ```
 ADVRET/
 ├── main.py                 # Main entry point with mode selection
+├── app.py                  # Flask web app entry point
 ├── attacks/                # Attack implementations
 │   ├── fgsm_attack.py
 │   ├── pgd_attack.py
@@ -55,6 +57,15 @@ ADVRET/
 │   └── predict.py          # Prediction utilities
 ├── evaluation/
 │   └── metrics.py          # Benchmarking and metrics
+├── templates/              # Web UI templates (Jinja)
+│   ├── base.html
+│   ├── index.html          # Landing page + form
+│   ├── results.html        # Results page
+│   └── partials/
+├── static/
+│   └── js/
+│       └── progress.js     # Simple progress modal logic (no polling)
+├── uploads/                # Temporary uploads (ignored by git)
 ├── outputs/                # Generated images and results
 └── requirements.txt        # Python dependencies
 ```
@@ -76,15 +87,44 @@ ADVRET/
   - Batch processing with GPU acceleration
 
 - **Visualization Capabilities**:
-  - Original image preservation
-  - Adversarial image generation
-  - Perturbation visualization with normalization
   - Graphical attack benchmarking:
     - Success rate bar chart
     - Confidence drop bar chart
     - Combined success vs confidence comparison chart
     - Robustness curve (accuracy vs epsilon)
-  - Generated outputs saved into the `outputs/` directory
+  - Generated outputs saved into the `outputs/` directory (typically ignored by git)
+
+### Web UI Details (Flask)
+
+The web interface provides a minimal, synchronous workflow:
+
+- **Landing page (`GET /`)**:
+  - Shows project info and instructions
+  - Form inputs:
+    - pretrained model selection (ResNet18 / MobileNetV2 / VGG16)
+    - optional custom model upload (`.pt` / `.pth`)
+    - **folder upload** for images (`webkitdirectory`), accepting `.jpg` / `.jpeg` / `.png`
+    - attack mode (single or benchmark)
+  - Shows a centered progress modal when “Run” is clicked (approximate % only; no polling)
+
+- **Run endpoint (`POST /run`)**:
+  - Processes images synchronously
+  - Computes metrics and generates graphs
+  - Renders `results.html` with:
+    - results table
+    - static graphs served from `/outputs/...`
+    - summary + defense suggestions
+    - report download button
+
+### Temporary uploads & cleanup policy
+
+To keep the project lightweight and safe:
+
+- User uploads are stored under `uploads/` and treated as **temporary**.
+- Old uploads are deleted/overwritten when:
+  - the landing page is refreshed, or
+  - the user uploads new files
+- Uploaded artifacts are never intended to be committed to git.
 
 ## Usage Examples
 

@@ -8,15 +8,14 @@ ADVRET is a PyTorch-based system designed to evaluate how vulnerable deep learni
 
 ## Features
 
-* Pretrained ResNet18 model loading
+* Pretrained model loading (ResNet18 / MobileNetV2 / VGG16)
 * Four adversarial attacks: FGSM, PGD, DeepFool, Carlini-Wagner
 * Dual operating modes: Single attack testing and multi-attack benchmarking
 * Batch processing of image folders
-* Perturbation visualization
 * Attack success rate and confidence drop metrics
 * Automated benchmark table generation
-* Graphical benchmark output (success rate, confidence drop, comparison, robustness curve)
-* Saving original, adversarial, perturbation, and graph outputs in `outputs/`
+* Static benchmark graphs (success rate, confidence drop, comparison, robustness curve)
+* Web UI (Flask) + CLI mode
 
 ## Project Structure
 
@@ -26,7 +25,11 @@ dataset/          # Image loading utilities
 models/           # Model loading
 utils/            # Helper functions and labels
 evaluation/       # Metrics and benchmarking
+templates/        # Web UI templates (Jinja)
+static/           # Web UI static assets (JS)
+uploads/          # Temporary user uploads (ignored by git)
 outputs/          # Generated results
+app.py            # Flask web app
 main.py           # Main application
 requirements.txt  # Dependencies
 PROJECT_DOCUMENTATION.md  # Detailed documentation
@@ -40,11 +43,41 @@ pip install -r requirements.txt
 
 ## Usage
 
+### Web UI (recommended)
+
+```bash
+python app.py
+```
+
+Then open `http://127.0.0.1:5000/`.
+
+In the UI you can:
+- Select a pretrained model (ResNet18 / MobileNetV2 / VGG16) or upload a custom `.pt` / `.pth`
+- Upload a **folder** of images (`.jpg` / `.jpeg` / `.png`)
+- Run single-attack mode or benchmark mode
+- View results on a dedicated results page (static graphs + summary + defense suggestions)
+- Download a zipped report
+
+**Progress indicator:** the UI shows a simple centered progress modal with an approximate percentage (no polling / no extra backend routes).
+
+**Temporary uploads:** uploaded images/models are treated as temporary (see “Uploads & Git safety” below).
+
+### CLI mode
+
 ```bash
 python main.py
 ```
 
 Choose between single attack mode or benchmark mode to evaluate model robustness.
+
+## Uploads & Git safety
+
+- User uploads are stored under `uploads/` and treated as **temporary**.
+- Old uploads are automatically removed when:
+  - the landing page is refreshed, or
+  - the user uploads new files
+- `uploads/` is ignored by git, and model file extensions (`*.pt`, `*.pth`) are also ignored.
+- `outputs/` is ignored by git (generated graphs/report files).
 
 ## Documentation
 
