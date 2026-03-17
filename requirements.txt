@@ -4,3 +4,4 @@ numpy==1.26.4
 pillow>=9.0
 matplotlib>=3.7
 pandas>=2.0
+flask>=2.3
